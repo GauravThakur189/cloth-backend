@@ -91,7 +91,23 @@ app.use('/images',express.static('uploads/images'))
       })
     })
 
+    app.post('/removeProduct', async(req,res)=>{
+      await Product.findOneAndDelete({id:req.body.id});
+      console.log("produt removed");
+      res.json({
+         success:true,
+         name:req.body.name
+      })
+
+    })
+
     //get all products
+  app.get("/allProducts",async(req,res)=>{
+   const product = await Product.find({})
+    console.log("all product fetched");
+    res.json(product)
+  })
+
 app.listen(PORT, (err)=>{
    if(!err) console.log(`Server is running on port ${PORT}`);
    else
