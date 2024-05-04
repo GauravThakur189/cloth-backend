@@ -108,6 +108,68 @@ app.use('/images',express.static('uploads/images'))
     res.json(product)
   })
 
+
+  // creating user schema 
+
+  const userSchema = mongoose.Schema({
+   name:{
+      type:String,
+      required: true,
+   },
+   email:{
+      type:String,
+      required:true,
+   },
+   password:{
+      type:String,
+      required:true,
+   },
+   cartData:{
+      type:Object,
+
+   },
+   date:{
+      type:Date,
+      default: Date.now(),
+   }
+  })
+
+
+  const User = mongoose.model("User",userSchema);
+
+
+  // creating the end point for registering the post method
+
+  app.post('/signup',async(req,res)=>{
+      
+   let check = await User.findOne({email:req.body.email});
+   if(check){
+      return res.status(400).json({success:false,errors:"already existing user"})
+   }
+
+   let cart = {};
+   for (let index = 0; index <300; index++) {
+      cart[index] = 0;  
+   }
+
+   const user = new User({
+      name:req.body.username,
+      email:req.body.email,
+      password:req.body.password,
+      cartData:cart,
+   })
+   await user.save();
+
+   const data = {
+      user:{
+         id:user._id,
+      }
+   }
+// creating token 
+   const token = jwt.sign(data,'secret_ecom');
+   res.json({success:true,token})
+  })
+
 app.listen(PORT, (err)=>{
    if(!err) console.log(`Server is running on port ${PORT}`);
    else
