@@ -7,6 +7,7 @@ const multer = require("multer");
 const path = require("path");
 const cors = require("cors");
 const { type, availableParallelism } = require("os");
+const { error } = require("console");
 
 // const username = thakurshahab1809
 // password = 3mXw4pSuvLlQT2Mc
@@ -140,35 +141,96 @@ app.use('/images',express.static('uploads/images'))
 
   // creating the end point for registering the post method
 
-  app.post('/signup',async(req,res)=>{
+//   app.post('/signup',async(req,res)=>{
       
-   let check = await User.findOne({email:req.body.email});
-   if(check){
-      return res.status(400).json({success:false,errors:"already existing user"})
+//    let check = await User.findOne({email:req.body.email});
+//    if(check){
+//       return res.status(400).json({success:false,errors:"already existing user"})
+//    }
+
+//    let cart = {};
+//    for (let index = 0; index <300; index++) {
+//       cart[index] = 0;  
+//    }
+
+//    const user = new User({
+//       name:req.body.username,
+//       email:req.body.email,
+//       password:req.body.password,
+//       cartData:cart,
+//    })
+//    await user.save();
+
+//    const data = {
+//       user:{
+//          id:user.id
+//       }
+//    }
+// // creating token 
+//    const token = jwt.sign(data,'secret_ecom');
+//    res.json({success:true,token})
+//   })
+
+
+
+app.post('/signup', async (req, res) => {
+   try {
+       // Check if the user already exists
+       let existingUser = await User.findOne({ email: req.body.email });
+       if (existingUser) {
+           return res.status(400).json({ success: false, errors: "User already exists" });
+       }
+
+       // Initialize cart
+       let cart = {};
+       for (let index = 0; index < 300; index++) {
+           cart[index] = 0;
+       }
+
+       // Create a new user
+       const newUser = new User({
+           name: req.body.username,
+           email: req.body.email,
+           password: req.body.password,
+           cartData: cart
+       });
+
+       // Save the user to the database
+       await newUser.save();
+
+       // Generate JWT token
+       const token = jwt.sign({ user: { id: newUser.id } }, 'secret_ecom');
+
+       // Return success response with token
+       res.json({ success: true, token });
+   } catch (error) {
+       console.error("Error occurred during signup:", error);
+       res.json({ success: false, errors: "Internal server error" });
    }
+});
 
-   let cart = {};
-   for (let index = 0; index <300; index++) {
-      cart[index] = 0;  
-   }
-
-   const user = new User({
-      name:req.body.username,
-      email:req.body.email,
-      password:req.body.password,
-      cartData:cart,
-   })
-   await user.save();
-
-   const data = {
-      user:{
-         id:user._id,
+app.post('/login',async(req,res)=>{
+   const user = await User.findOne({email:req.body.email});
+   if(user){
+      const validPassword= req.body.password === user.password;
+      if(validPassword){
+         const data  = {
+            user :{
+               id:user.id,
+            }
+         }
+         const token = jwt.sign(data,'secret_ecom');
+         res.json({success:true,token})
+      }
+      else{
+         res.status(401).json({success:false,error:"wrong password"})
       }
    }
-// creating token 
-   const token = jwt.sign(data,'secret_ecom');
-   res.json({success:true,token})
-  })
+   else{
+      res.json({success:false,error:"wrong email id "})
+   }
+
+})
 
 app.listen(PORT, (err)=>{
    if(!err) console.log(`Server is running on port ${PORT}`);
