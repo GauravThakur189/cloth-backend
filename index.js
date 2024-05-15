@@ -13,7 +13,10 @@ const { error } = require("console");
 // password = 3mXw4pSuvLlQT2Mc
 
 app.use(express.json());
-app.use(cors());
+// app.use(cors());
+app.use(cors({
+   origin: 'http://localhost:5173',
+ }));
 mongoose.connect("mongodb+srv://thakurshahab1809:3mXw4pSuvLlQT2Mc@cluster0.lyhejms.mongodb.net/cloth-store");
 
 
